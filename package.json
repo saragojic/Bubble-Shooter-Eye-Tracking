@@ -1,0 +1,23 @@
+{
+  "name": "bubbleschooter",
+  "version": "1.0.0",
+  "description": "BubbleShooter with Eye Tracking",
+  "main": "bubble-shooter-example.js",
+  "author": "Sara Gojic",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "cross-env": "^7.0.3",
+    "express": "^4.18.2",
+    "open": "^8.4.0",
+    "parcel": "^2.8.1",
+    "seeso": "^0.1.11"
+  },
+  "scripts": {
+    "dev": "parcel bubble-shooter.html",
+    "serve": "cross-env NODE_ENV=development node devServer.js bubble-shooter.html 8082"
+  },
+  "devDependencies": {
+    "parcel-bundler": "^1.12.5"
+  }
+}
