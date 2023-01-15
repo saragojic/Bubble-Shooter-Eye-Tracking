@@ -3,12 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <title>Rembound.com Example</title>
-<script type='module' src='bubble-shooter-example.js'></script>
+<script src='bubble-shooter-example.js'></script>
 </head>
 
-<body style="background-color: rgb(255, 251, 251);">
+<body style="display:flex; flex-direction: column; background-color: rgb(255, 251, 251);">
 
-<canvas style="margin-left: 15%;" id="viewport" width="1800" height="1100"></canvas></div>
+<div>
+    <button id="calibrate" value="Calibrate">Calibrate</button>
+</div>
+<div style="align-self: center;">
+    <canvas id="viewport" width="1200" height="900"></canvas>
+</div>
+
 </body>
 
 </html> 

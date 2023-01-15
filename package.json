@@ -15,6 +15,7 @@
   },
   "scripts": {
     "dev": "parcel bubble-shooter.html",
+    "build": "parcel build bubble-shooter.html",
     "serve": "cross-env NODE_ENV=development node devServer.js bubble-shooter.html 8082"
   },
   "devDependencies": {

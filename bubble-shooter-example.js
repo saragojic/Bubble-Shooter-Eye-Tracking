@@ -20,13 +20,87 @@
 //import 'regenerator-runtime/runtime';
 //import EasySeeSo from 'seeso/easy-seeso';
 
-
 // The function gets called when the window is fully loaded
-window.onload = function() {
+import 'regenerator-runtime/runtime';
+import EasySeeSo from 'seeso/easy-seeso';
+import {UserStatusOption} from 'seeso/dist/seeso';
+// Extracts calibration data from query param in url
+function parseCalibrationDataInQueryString () {
+    const href = window.location.href
+    const decodedURI = decodeURI(href)
+    const queryString = decodedURI.split('?')[1];
+
+    if (!queryString) return undefined
+    const jsonString = queryString.slice("calibrationData=".length, queryString.length)
+    return jsonString
+  }
+
+window.onload = async function() {
     // Get the canvas and context
+ 
     var canvas = document.getElementById("viewport");
     var context = canvas.getContext("2d");
+    console.log(context);
+    const seeso = new EasySeeSo();
+    const calibrationData = parseCalibrationDataInQueryString();
+    if(calibrationData){
+        // Initialize calibration data if calibration process is finished
+        seeso.setCalibrationData(calibrationData);
+    }
+    var button = document.getElementById("calibrate");
+    button.addEventListener('click', () => {
+        // Open calibration page and redirect back to localhost with calibration data 
+        // calibrationData={"vector":"491NP8wirL6cKay8/pOdO7PPyryKApU8KQ8JQT6TUEE=","vectorLength":32,"isCameraOnTop":true,"cameraX":960,"monitorInch":"17","faceDistance":50}
+        EasySeeSo.openCalibrationPage('dev_mfrit5cg9thrpkadvirre5d07lhkioz8yhpaiimm', 'sa20b004', window.location.href, 5);        
+    });
+    var eyeX, eyeY;
+    // Callback function for retrieving x y coordinates
+    function onGaze(gazeInfo) {
+        //console.log(gazeInfo);
+        eyeX = gazeInfo.x;
+        eyeY = gazeInfo.y;
+        //console.log(eyeX);
+        onEyeMove();
+    }
+
     
+
+    function onDebug(FPS, latency_min, latency_max, latency_avg){
+    }
+    function afterInitialized () {
+        console.log('sdk init success!');
+        // Here SeeSo starts tracking
+        seeso.startTracking(onGaze, onDebug);
+        // registruje se callback za attention i blink
+        seeso.setUserStatusCallback(onAttention, onBlink, false);
+    }
+
+    function onAttention(){
+        console.log("test attention");
+        if (gamestate == gamestates.gameover) {
+            newGame();
+        } else {
+            shootBubble();
+        }
+    }
+
+    function onBlink(timestamp, isBlinkLeft, isBlinkRight, isBlink) {
+        if (isBlinkLeft || isBlinkRight) {
+            console.log("BLINK");
+            if (gamestate == gamestates.gameover) {
+                newGame();
+            } else {
+                shootBubble();
+            }
+        }
+      }
+     
+    function afterFailed () {
+      console.log('sdk init fail!')
+    }
+    // Prvi true je attention, drugi je blink
+    await seeso.init('dev_mfrit5cg9thrpkadvirre5d07lhkioz8yhpaiimm', afterInitialized, afterFailed, new UserStatusOption(true, false, false));
+
     // Timing and frames per second
     var lastframe = 0;
     var fpstime = 0;
@@ -37,16 +111,16 @@ window.onload = function() {
     
     // Level
     var level = {
-        x: 25,           // X position
-        y: 100,          // Y position
+        x: 4,           // X position
+        y: 83,          // Y position
         width: 0,       // Width, gets calculated
         height: 0,      // Height, gets calculated
-        columns: 10,    // Number of tile columns
-        rows: 8,       // Number of tile rows
-        tilewidth: 100,  // Visual width of a tile
-        tileheight: 100, // Visual height of a tile
-        rowheight: 100,  // Height of a row
-        radius: 100,     // Bubble collision radius
+        columns: 14,    // Number of tile columns
+        rows: 9,       // Number of tile rows
+        tilewidth: 80,  // Visual width of a tile
+        tileheight: 80, // Visual height of a tile
+        rowheight: 68,  // Height of a row
+        radius: 40,     // Bubble collision radius
         tiles: []       // The two-dimensional tile array
     };
 
@@ -89,7 +163,7 @@ window.onload = function() {
                             [[1, 0], [1, 1], [0, 1], [-1, 0], [0, -1], [1, -1]]];  // Odd row tiles
     
     // Number of different colors
-    var bubblecolors = 7;
+    var bubblecolors = 5;
     
     // Game states
     var gamestates = { init: 0, ready: 1, shootbubble: 2, removecluster: 3, gameover: 4 };
@@ -118,7 +192,7 @@ window.onload = function() {
     var loadcount = 0;
     var loadtotal = 0;
     var preloaded = false;
-    
+
     // Load images
     function loadImages(imagefiles) {
         // Initialize variables
@@ -131,7 +205,6 @@ window.onload = function() {
         for (var i=0; i<imagefiles.length; i++) {
             // Create the image object
             var image = new Image();
-            
             // Add onload event handler
             image.onload = function () {
                 loadcount++;
@@ -142,12 +215,11 @@ window.onload = function() {
             };
             
             // Set the source url of the image
-            image.src = imagefiles[i];
+            image.src = 'http://localhost:8082/' + imagefiles[i];
             
             // Save to the image array
             loadedimages[i] = image;
         }
-        
         // Return an array of images
         return loadedimages;
     }
@@ -159,8 +231,8 @@ window.onload = function() {
         bubbleimage = images[0];
     
         // Add mouse events
-        canvas.addEventListener("mousemove", onMouseMove);
-        canvas.addEventListener("mousedown", onMouseDown);
+        //canvas.addEventListener("mousemove", onMouseMove);
+        window.addEventListener("keydown", onKeyDown);
         
         // Initialize the two-dimensional tile array
         for (var i=0; i<level.columns; i++) {
@@ -194,15 +266,14 @@ window.onload = function() {
     function main(tframe) {
         // Request animation frames
         window.requestAnimationFrame(main);
-    
+
         if (!initialized) {
             // Preloader
-            
             // Clear the canvas
             context.clearRect(0, 0, canvas.width, canvas.height);
             
             // Draw the frame
-            drawFrame();
+             drawFrame();
             
             // Draw a progress bar
             var loadpercentage = loadcount/loadtotal;
@@ -217,7 +288,7 @@ window.onload = function() {
             context.fillStyle = "#000000";
             context.font = "16px Verdana";
             context.fillText(loadtext, 18, 0.5 + canvas.height - 63);
-            
+       
             if (preloaded) {
                 // Add a delay for demonstration purposes
                 setTimeout(function(){initialized = true;}, 1000);
@@ -842,6 +913,12 @@ window.onload = function() {
         context.moveTo(centerx, centery);
         context.lineTo(centerx + 1.5*level.tilewidth * Math.cos(degToRad(player.angle)), centery - 1.5*level.tileheight * Math.sin(degToRad(player.angle)));
         context.stroke();
+
+        // Red dot where eye is looking at
+        context.fillStyle = '#FF0000';
+        context.beginPath();
+        context.arc(eyeX, eyeY, 10, 0, 10 * Math.PI);
+        context.fill();
         
         // Draw the next bubble
         drawBubble(player.nextbubble.x, player.nextbubble.y, player.nextbubble.tiletype);
@@ -1009,10 +1086,13 @@ window.onload = function() {
     }
 
     // On mouse movement
-    function onMouseMove(e) {
+    function onEyeMove() {
         // Get the mouse position
-        var pos = getMousePos(canvas, e);
-
+        //var pos = getMousePos(canvas, e);
+        var pos = {
+            x: eyeX,
+            y: eyeY,
+        };
         // Get the mouse angle
         var mouseangle = radToDeg(Math.atan2((player.y+level.tileheight/2) - pos.y, pos.x - (player.x+level.tilewidth/2)));
 
@@ -1041,10 +1121,15 @@ window.onload = function() {
     }
     
     // On mouse button click
-    function onMouseDown(e) {
+    function onKeyDown(e) {
         // Get the mouse position
-        var pos = getMousePos(canvas, e);
-        
+        //var pos = getMousePos(canvas, e);
+        console.log("KEY DOWN");
+        var pos = {
+            x: eyeX,
+            y: eyeY,
+        };
+        console.log(pos);
         if (gamestate == gamestates.ready) {
             shootBubble();
         } else if (gamestate == gamestates.gameover) {
@@ -1062,5 +1147,5 @@ window.onload = function() {
     }
     
     // Call init to start the game
-    init();
+init();
 };
