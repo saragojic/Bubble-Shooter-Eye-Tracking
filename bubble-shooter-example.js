@@ -76,21 +76,27 @@ window.onload = async function() {
     }
 
     function onAttention(){
-        console.log("test attention");
-        if (gamestate == gamestates.gameover) {
-            newGame();
-        } else {
-            shootBubble();
-        }
-    }
-
-    function onBlink(timestamp, isBlinkLeft, isBlinkRight, isBlink) {
-        if (isBlinkLeft || isBlinkRight) {
-            console.log("BLINK");
+        const shootingTrigger = document.getElementById('shootingTrigger');
+        if(shootingTrigger.value === 'ATTENTION'){
+            console.log("test attention");
             if (gamestate == gamestates.gameover) {
                 newGame();
             } else {
                 shootBubble();
+            }
+        }
+    }
+
+    function onBlink(timestamp, isBlinkLeft, isBlinkRight, isBlink) {
+        const shootingTrigger = document.getElementById('shootingTrigger');
+        if(shootingTrigger.value === 'BLINK'){
+            if (isBlinkLeft || isBlinkRight) {
+                console.log("BLINK");
+                if (gamestate == gamestates.gameover) {
+                    newGame();
+                } else {
+                    shootBubble();
+                }
             }
         }
       }
@@ -99,8 +105,8 @@ window.onload = async function() {
       console.log('sdk init fail!')
     }
     // Prvi true je attention, drugi je blink
-    await seeso.init('dev_mfrit5cg9thrpkadvirre5d07lhkioz8yhpaiimm', afterInitialized, afterFailed, new UserStatusOption(true, false, false));
-
+    await seeso.init('dev_mfrit5cg9thrpkadvirre5d07lhkioz8yhpaiimm', afterInitialized, afterFailed, new UserStatusOption(true, true, false));
+    seeso.setAttentionInterval(10);
     // Timing and frames per second
     var lastframe = 0;
     var fpstime = 0;
