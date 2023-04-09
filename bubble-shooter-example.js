@@ -39,6 +39,7 @@ window.onload = async function() {
     // Get the canvas and context
  
     var canvas = document.getElementById("viewport");
+    canvas.width = window.innerWidth;
     var context = canvas.getContext("2d");
     console.log(context);
     const seeso = new EasySeeSo();
@@ -51,7 +52,7 @@ window.onload = async function() {
     button.addEventListener('click', () => {
         // Open calibration page and redirect back to localhost with calibration data 
         // calibrationData={"vector":"491NP8wirL6cKay8/pOdO7PPyryKApU8KQ8JQT6TUEE=","vectorLength":32,"isCameraOnTop":true,"cameraX":960,"monitorInch":"17","faceDistance":50}
-        EasySeeSo.openCalibrationPage('dev_mfrit5cg9thrpkadvirre5d07lhkioz8yhpaiimm', 'sa20b004', window.location.href, 5);        
+        EasySeeSo.openCalibrationPage('dev_mz6my8ivhqvyata2eit6vivz8xbpnc2wh29d4ngb', 'sa20b004', window.location.href, 5);        
     });
     var eyeX, eyeY;
     // Callback function for retrieving x y coordinates
@@ -107,6 +108,8 @@ window.onload = async function() {
     // Prvi true je attention, drugi je blink
     await seeso.init('dev_mfrit5cg9thrpkadvirre5d07lhkioz8yhpaiimm', afterInitialized, afterFailed, new UserStatusOption(true, true, false));
     seeso.setAttentionInterval(10);
+
+    
     // Timing and frames per second
     var lastframe = 0;
     var fpstime = 0;
@@ -117,7 +120,7 @@ window.onload = async function() {
     
     // Level
     var level = {
-        x: 4,           // X position
+        x: window.innerWidth / 2 - 600,           // X position
         y: 83,          // Y position
         width: 0,       // Width, gets calculated
         height: 0,      // Height, gets calculated
@@ -1130,6 +1133,10 @@ window.onload = async function() {
     function onKeyDown(e) {
         // Get the mouse position
         //var pos = getMousePos(canvas, e);
+        const shootingTrigger = document.getElementById('shootingTrigger');
+        if(shootingTrigger.value !== 'KEYBOARD'){
+            return;
+        }
         console.log("KEY DOWN");
         var pos = {
             x: eyeX,
